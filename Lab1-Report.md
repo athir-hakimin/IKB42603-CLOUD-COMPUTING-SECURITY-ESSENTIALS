@@ -21,8 +21,8 @@ All screenshots used for this report are stored in the `Evidence` folder.
 |---|---|
 | `2-Least-privilege.png` | Commands for creating the admin group, attaching policy, creating admin user and verifying membership |
 | `2.1-Group-Policy.png` | `Admins` group creation output |
-| `2.2-Personal-Admin.png` | `CloudAdmin_dani` admin user creation output |
-| `2.4-Verify-Membership.png` | `CloudAdmin_dani` membership in `Admins` group |
+| `2.2-Personal-Admin.png` | `CloudAdmin_athir` admin user creation output |
+| `2.4-Verify-Membership.png` | `CloudAdmin_athir` membership in `Admins` group |
 | `3.1-create-user.png` | `Analyst_jiha` read-only user creation output |
 | `3.3-ListPermission-User.png` | `AmazonS3ReadOnlyAccess` attached to `Analyst_jiha` |
 | `4.1-access-key.png` | Access key creation for `Analyst_jiha` |
