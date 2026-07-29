@@ -141,7 +141,8 @@ The user `CloudAdmin_athir` was created successfully.
 
 Evidence:
 
-![CloudAdmin user creation](Evidence/2.2-Personal-Admin.png)
+<img width="556" height="50" alt="Screenshot 2026-07-29 201224" src="https://github.com/user-attachments/assets/15c91d9c-930b-4f6d-b4cd-1a142835df80" />
+
 
 ### Step 2.4: Add User to Admins Group and Verify Membership
 
