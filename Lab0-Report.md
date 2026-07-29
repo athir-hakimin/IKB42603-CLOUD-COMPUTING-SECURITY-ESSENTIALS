@@ -19,7 +19,6 @@ The verification was performed from an Ubuntu terminal (WSL/Linux shell). The fo
 | kind | Run local Kubernetes clusters using Docker | kind v0.23.0 |
 | kubectl | Communicate with Kubernetes clusters | Client v1.36.3; Kustomize v5.8.1 |
 | OpenSSL | Perform cryptographic and TLS-related operations | OpenSSL 3.0.13 (30 Jan 2024) |
-| oathtool | Generate and validate one-time passwords | oathtool 2.6.11 ||
 
 ## Verification Procedure and Evidence
 
