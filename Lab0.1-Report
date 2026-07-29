@@ -1,0 +1,21 @@
+# Lab 0.1: Environment Setup (Auth-Token Track)
+
+**Course:** Cloud Computing Security Essentials  
+**Lab:** 0.1 LocalStack with Auth Token + Web Console  
+**Date:** 29 July 2026
+
+---
+
+## Objective
+
+Activate LocalStack Pro using a license authentication token, verify license activation, configure AWS CLI endpoint access, and manage simulated AWS cloud resources (S3, DynamoDB, IAM) via both CLI commands and the web-based LocalStack Resource Browser.
+
+---
+
+## Part 1 & 2: Account Authentication & Terminal Token Configuration
+
+A LocalStack account was created and a Pro Developer Auth Token was retrieved from the LocalStack Auth Tokens page. The token was securely loaded into the active Ubuntu (WSL2) shell environment using:
+
+```bash
+export LOCALSTACK_AUTH_TOKEN="ls-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+echo $LOCALSTACK_AUTH_TOKEN
