@@ -166,9 +166,9 @@ Output summary:
     "Users": [
         {
             "Path": "/",
-            "UserName": "CloudAdmin_YOURNAME",
+            "UserName": "CloudAdmin_athir",
             "UserId": "AIDAQAAAAAAANWQXHFFGJ",
-            "Arn": "arn:aws:iam::000000000000:user/CloudAdmin_YOURNAME",
+            "Arn": "arn:aws:iam::000000000000:user/CloudAdmin_athir",
             "CreateDate": "2026-07-29T11:06:11.993055+00:00"
         },
         {
