@@ -57,7 +57,7 @@ kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/
 
 ## 3. Task 1 — Two Tenants on One Cluster
 
-Two namespaces, `tenant-a` and `tenant-b`, were created to model two customers sharing the same physical cluster. An `nginx` deployment was created and exposed in each namespace.
+To simulate two clients sharing the same physical cluster, two namespaces, `tenant-a` and `tenant-b`, were established. In every namespace, a deployment of `nginx` was made and made public.
 
 ```
 kubectl create namespace tenant-a
@@ -72,13 +72,13 @@ kubectl get pods,svc -n tenant-a
 <img width="323" height="185" alt="02-task1-namespaces-deployments" src="https://github.com/user-attachments/assets/fc50519b-4bc3-4186-b9a3-762f9743ee95" />
 
 
-Both tenants now have their own pod and `ClusterIP` service, isolated at the namespace level but still sharing the same underlying cluster.
+Despite sharing the same underlying cluster, each tenant now has its own pod and `ClusterIP` service, segregated at the namespace level.
 
 ---
 
 ## 4. Task 2 — Observe the Default-Open Risk
 
-To prove that namespaces alone do **not** provide network isolation, `tenant-b`'s service IP was retrieved and a probe pod in `tenant-a` was used to reach it.
+In order to demonstrate that namespaces by themselves **do not** offer network isolation, a probing pod in `tenant-a` was utilized to access the service IP of `tenant-b`.
 
 ```
 kubectl get svc web -n tenant-b -o jsonpath='{.spec.clusterIP}'; echo
@@ -94,13 +94,13 @@ kubectl -n tenant-a run probe --rm -it --image=curlimages/curl --restart=Never \
 
 <img width="330" height="135" alt="04-task2-probe-http200" src="https://github.com/user-attachments/assets/399a1c94-b1c9-4403-a4fc-ffa19f536dd6" />
 
-**Result:** `HTTP 200` — the probe pod in `tenant-a` successfully reached `tenant-b`'s service. This confirms that, by default, pods in one namespace can freely reach pods/services in another namespace on the same cluster. On shared multi-tenant infrastructure this is a real risk: without explicit network segmentation, one customer's workload can probe or attack another customer's workload.
+**Result:** `HTTP 200`: The probe pod in `tenant-a` was able to access the service of `tenant-b`. This verifies that pods in one namespace can, by default, easily connect to pods or services in another namespace on the same cluster. This poses a serious risk to shared multi-tenant infrastructure because, in the absence of clear network segmentation, the workload of one customer may probe or attack that of another.
 
 ---
 
 ## 5. Task 3 — Contain the Noisy Neighbour (Resource Quotas)
 
-A `ResourceQuota` was applied to `tenant-a` to cap the CPU, memory, and pod count it can consume, preventing one tenant from exhausting shared node capacity.
+To stop one tenant from using up all of the shared node capacity, a `ResourceQuota` was applied to `tenant-a` to limit the amount of CPU, memory, and pods it could use.
 
 ```
 cat <<EOF | kubectl apply -f -
@@ -124,13 +124,13 @@ kubectl describe resourcequota tenant-a-quota -n tenant-a
 <img width="320" height="167" alt="05b-task3-resourcequota-describe" src="https://github.com/user-attachments/assets/acc53370-85b2-4098-878a-7fd7d596ee98" />
 
 
-The quota was created and shows `pods: 1/5`, confirming the earlier `web` deployment pod is already counted against the limit.
+The earlier `web` deployment pod has already been counted against the limit, as indicated by the quota's creation and display of `pods: 1/5`.
 
 ---
 
 ## 6. Task 4 — Default-Deny Network Isolation
 
-A default-deny ingress `NetworkPolicy` was applied to `tenant-b` to block all inbound traffic unless explicitly allowed:
+To prevent all incoming traffic unless specifically permitted, a default-deny ingress `NetworkPolicy` was implemented to `tenant-b`:
 
 ```
 cat <<EOF | kubectl apply -f -
@@ -145,7 +145,7 @@ spec:
 EOF
 ```
 
-The same probe from Task 2 was then re-run to confirm the traffic is now blocked:
+To verify that the traffic is now blocked, the identical probe from Task 2 was then conducted again:
 
 ```
 kubectl -n tenant-a run probe --rm -it --image=curlimages/curl --restart=Never \
@@ -157,20 +157,20 @@ kubectl -n tenant-a run probe --rm -it --image=curlimages/curl --restart=Never \
 
 <img width="320" height="170" alt="06b-task4-probe-rerun" src="https://github.com/user-attachments/assets/a25ad65a-6395-4689-9864-1a0f8dad7f65" />
 
-**Result:** `default-deny-ingress` was created successfully. On re-running the probe, the pod was instead rejected by the API server with `Forbidden: failed quota: tenant-a-quota: must specify requests.cpu for probe; requests.memory for probe`. This happened because the `tenant-a-quota` `ResourceQuota` from Task 3 requires every pod in the namespace to declare `requests.cpu`/`requests.memory`, and the ad-hoc `probe` pod did not specify them. In effect, the `ResourceQuota` admission control blocked the pod before the `NetworkPolicy` even had a chance to be tested — a good illustration of layered isolation controls (compute and network policy both act as independent gates). Adding explicit resource requests to the probe pod spec (e.g. `--requests='cpu=100m,memory=32Mi'`) would let the pod be admitted, and the connection would then time out due to `default-deny-ingress`, confirming network isolation is enforced.
+**Result:** The creation of `default-deny-ingress` was successful. When the probe was rerun, the API server refused the pod with the message "Forbidden: failed quota: tenant-a-quota: must specify requests.cpu for probe; requests."memory for the probe. This occurred because the ad-hoc `probe` pod failed to define the `tenant-a-quota` `ResourceQuota` from Task 3, which requires all pods in the namespace to declare `requests.cpu`/`requests.memory`. As a nice example of layered isolation controls, the pod was effectively blocked by the `ResourceQuota` admission control before the `NetworkPolicy` had a chance to be tested (compute and network policy both act as independent gates). In order to verify that network isolation is implemented, adding specific resource requests to the probe pod spec (for example, `--requests='cpu=100m,memory=32Mi')` would allow the pod to be accepted. The connection would then time out owing to `default-deny-ingress`.
 
 ---
 
 ## 7. Task 5 — Storage & Secret Isolation
 
-A `Secret` was created in each tenant namespace to represent per-tenant sensitive data:
+To represent confidential data specific to each tenant, a `Secret` was defined in each tenant namespace:
 
 ```
 kubectl -n tenant-a create secret generic data --from-literal=value=SECRET_A
 kubectl -n tenant-b create secret generic data --from-literal=value=SECRET_B
 ```
 
-A service account, `Role`, and `RoleBinding` scoped to `tenant-a` only were then created so that `app-a` could read secrets in its own namespace only:
+In order for `app-a` to read secrets in its own namespace exclusively, a service account, `Role`, and `RoleBinding` scoped to `tenant-a` only were then created:
 
 ```
 kubectl -n tenant-a create serviceaccount app-a
@@ -178,7 +178,7 @@ kubectl -n tenant-a create role reader --verb=get --resource=secrets
 kubectl -n tenant-a create rolebinding rb --role=reader --serviceaccount=tenant-a:app-a
 ```
 
-The first attempt failed with `subjects[0].name: Invalid value: "app-\na"`, because the multi-line command was pasted with a line break inside `--serviceaccount=tenant-a:app-a`, splitting it into `app-` and a stray `a` that the shell then tried to run as a command. The `serviceaccount` and `role` were created successfully; only the `rolebinding` needed to be re-run as a single line.
+The multi-line command was inserted with a line break within `--serviceaccount=tenant-a:app-a`, breaking it into `app-` and a stray `a` that the shell then attempted to run as a command, which is why the initial attempt failed with `subjects[0].name: Invalid value: "app-\na"`. The only thing that needed to be rerun as a single line was the `rolebinding`; the `serviceaccount` and `role` were formed correctly.
 
 ```
 kubectl -n tenant-a create rolebinding rb --role=reader --serviceaccount=tenant-a:app-a
@@ -194,13 +194,13 @@ kubectl auth can-i get secrets -n tenant-b --as=$SA
 - `kubectl auth can-i get secrets -n tenant-a --as=$SA` → **yes**
 - `kubectl auth can-i get secrets -n tenant-b --as=$SA` → **no**
 
-This confirms RBAC correctly scopes `app-a` to read secrets in `tenant-a` only, and denies it access to `tenant-b`'s secrets — storage/secret isolation is enforced.
+This demonstrates that storage/secret isolation is implemented and that RBAC appropriately scopes `app-a` to read secrets in `tenant-a` exclusively, denying it access to secrets in `tenant-b`.
 
 ---
 
 ## 8. Task 6 — Data Remanence & Secure Deletion
 
-A Docker volume was used to demonstrate that a normally "deleted" file can still leave recoverable traces on disk (data remanence), and that a secure wipe (overwrite-before-delete) prevents this.
+A Docker volume was utilized to show that a secure wipe (overwrite-before-delete) stops a usually "deleted" file from leaving recoverable traces on disk (data remanence).
 
 ```
 docker run --rm -v ccse-vol:/data alpine sh -c \
@@ -218,7 +218,7 @@ docker run --rm -v ccse-vol:/data alpine sh -c \
 
 <img width="326" height="145" alt="10b-task6-data-remanence-wipe" src="https://github.com/user-attachments/assets/5108b81f-d0e5-4981-87ea-a3dc9e41a632" />
 
-**Result:** After the normal `rm`, the `grep -a SENSITIVE` scan found no plaintext match in this run (`scan-done` with no matching line printed), which itself illustrates that remanence is probabilistic — it depends on filesystem behaviour, block reuse, and whether the underlying storage overwrites blocks on delete. Because this cannot be relied upon, the secure-wipe approach explicitly overwrites the file's bytes with zeros (`dd if=/dev/zero ... conv=notrunc`) before deleting it, so the sensitive content is destroyed regardless of what the filesystem does with the freed blocks (`wiped`).
+**Result:** Following the standard `rm`, the `grep -a SENSITIVE` scan discovered no plaintext match in this run (`scan-done` with no matching line printed). This alone shows that remanence is probabilistic, depending on filesystem behavior, block reuse, and whether the underlying storage overwrites blocks on delete. The secure-wipe method deliberately overwrites the file's bytes with zeros (`dd if=/dev/zero ... conv=notrunc`) before deleting it because this cannot be relied upon. This ensures that the sensitive material is deleted regardless of what the filesystem does with the freed blocks (`wiped`).
 
 ---
 
@@ -226,19 +226,19 @@ docker run --rm -v ccse-vol:/data alpine sh -c \
 
 **Q1. Why can containers in different namespaces reach each other by default, and why is that dangerous in multi-tenant cloud?**
 
-Kubernetes namespaces are primarily an organisational and RBAC/quota boundary, not a network boundary. Unless a `NetworkPolicy` (or equivalent CNI-level control) says otherwise, the cluster's flat pod network allows any pod to route to any other pod's or service's IP, regardless of namespace. This was shown directly in Task 2, where a pod in `tenant-a` reached `tenant-b`'s service and received `HTTP 200`. In a multi-tenant cloud, this is dangerous because it means one customer's workload can, by default, scan, connect to, or attack another customer's workload on the same shared infrastructure — a compromised or malicious tenant could pivot laterally into another tenant's environment unless the platform operator explicitly segments traffic.
+Kubernetes namespaces are not so much a network boundary as they are an organizational and RBAC/quota boundary. The cluster's flat pod network permits any pod to route to the IP of any other pod or service, independent of namespace, unless a `NetworkPolicy` (or comparable CNI-level policy) specifies otherwise. Task 2 clearly demonstrated this, as a pod in `tenant-a` reached the service of `tenant-b`'s and got `HTTP 200`. This is risky in a multi-tenant cloud because it allows one customer's workload to automatically scan, connect to, or attack another customer's workload on the same shared infrastructure; unless the platform operator specifically divides traffic, a compromised or malevolent tenant could pivot laterally into another tenant's environment.
 
 **Q2. Explain the default-deny principle and how your NetworkPolicy implements it.**
 
-Default-deny is the security principle of denying all traffic by default and only permitting the specific, explicitly-approved connections needed ("deny by default, permit by exception"), rather than allowing everything and trying to block known-bad traffic. The `default-deny-ingress` policy applied in Task 4 implements this for `tenant-b`: it uses an empty `podSelector: {}` (meaning it applies to every pod in the `tenant-b` namespace) and `policyTypes: [Ingress]` with no `ingress` rules defined. With no allow-rules specified, Calico enforces that no inbound traffic is permitted to any pod in that namespace at all — including from `tenant-a` — until a further policy explicitly allows specific sources.
+Rather than allowing everything and attempting to block known-bad traffic, default-deny is a security approach that denies all traffic by default and only permits the specific, explicitly-approved connections required ("deny by default, permit by exception"). This is implemented for `tenant-b` by the `default-deny-ingress` policy used in Task 4, which makes use of an empty `podSelector: {}` (applying to all pods in the `tenant-b` namespace) and `policyTypes: [Ingress]` with no defined `ingress` rules. Calico mandates that no inbound traffic is allowed to any pod in that namespace, including from `tenant-a`, unless another policy specifically permits certain sources.
 
 **Q3. How do virtual machines and containers differ in isolation strength? When would you add a VM boundary?**
 
-Containers share the host OS kernel and are isolated from each other using kernel-level features such as namespaces (PID, network, mount, etc.), cgroups, and capabilities. This gives good process/resource separation but a smaller trust boundary — a kernel vulnerability or container-escape bug can potentially let one tenant's workload affect another tenant's container or the host itself, since they all run on the same kernel. Virtual machines, by contrast, each run their own guest OS/kernel on top of a hypervisor, so the isolation boundary is at the hardware-virtualisation layer rather than the shared kernel — a much stronger, more battle-tested boundary. A VM boundary should be added when tenants are mutually untrusted and the impact of a container-escape would be severe — for example, hosting workloads for different, unrelated customers on the same physical node, running untrusted or unvetted third-party code, or handling highly regulated/sensitive data — because the extra isolation strength is worth the additional resource and performance overhead.
+Using kernel-level features like namespaces (PID, network, mount, etc.), cgroups, and capabilities, containers are separated from one another while sharing the host OS kernel. Because they all use the same kernel, a kernel vulnerability or container-escape bug may allow one tenant's workload to impact another tenant's container or the host itself. This results in good process/resource separation but a smaller trust boundary. In contrast, the isolation border is at the hardware-virtualization layer rather than the shared kernel—a far stronger, more tried-and-true boundary—because each virtual machine runs its own guest OS/kernel on top of a hypervisor. When tenants are mutually untrustworthy and a container escape would have serious consequences, such as when hosting workloads for disparate, unconnected. When tenants are mutually untrusted and the impact of a container-escape would be severe, such as when handling highly regulated or sensitive data, hosting workloads for different, unrelated customers on the same physical node, or running untrusted or unvetted third-party code, a virtual machine boundary should be added because the increased isolation strength justifies the additional resource and performance overhead.
 
 **Q4. What is data remanence, and why is cryptographic erasure the preferred cloud solution?**
 
-Data remanence is the residual representation of data that remains on storage media even after it has been "deleted" through normal file-deletion operations. A typical `rm`/`delete` usually only removes the filesystem's pointer/reference to the data; the underlying bytes on disk are not necessarily overwritten and can potentially be recovered until that storage block is reused. Task 6 demonstrated this risk and the mitigation of overwriting the bytes before deletion (`dd if=/dev/zero ...`). In cloud environments, however, the tenant generally does not control the physical disks — storage is virtualised, replicated across many physical drives, and reused/reallocated by the provider, so there is no reliable way to guarantee every physical block has been overwritten. The practical, provider-independent solution is cryptographic erasure: encrypt the data at rest with a key, and when the data needs to be permanently destroyed, simply destroy (or make permanently inaccessible) the encryption key. Without the key, the remaining ciphertext on any physical media is computationally infeasible to recover, making the data effectively unrecoverable without needing physical control over the underlying storage.
+The representation of data that is still present on storage media after it has been "deleted" via standard file-deletion procedures is known as data remanence. Only the filesystem's pointer or reference to the data is typically removed by a standard `rm`/`delete`; the underlying disk bytes are not always erased and may be restored until that storage block is accessed again. Task 6 illustrated this risk and how to mitigate it by overwriting the bytes before to deletion (`dd if=/dev/zero ...`). However, in cloud systems, the tenant typically has no control over the actual disks because storage is virtualized, replicated across several physical drives, and reused/reallocated by the provider. As a result, it is impossible to be certain that every physical block has been rewritten. Cryptographic erasure provides a workable, provider-independent solution: encrypt the data while it's at rest using a key, then simply destroy (or make permanently unavailable) the encryption key when the data needs to be permanently erased. The data is essentially unrecoverable without requiring physical control over the underlying storage since it is computationally impossible to recover the remaining ciphertext on any physical media without the key.
 
 **Q5. Which of the three isolation dimensions (compute, network, storage) did each task exercise?**
 
@@ -265,7 +265,7 @@ Data remanence is the residual representation of data that remains on storage me
 
 ## 11. Conclusion
 
-This lab demonstrated all three dimensions of multi-tenant cloud isolation. Namespaces alone provide organisational and quota separation but, as Task 2 showed, do not stop cross-tenant network traffic by default — that requires an explicit default-deny `NetworkPolicy` (Task 4), enforced here using Calico as the CNI. Similarly, storage isolation is not automatic either; per-tenant secrets need RBAC `Role`/`RoleBinding` scoping to prevent one tenant's service account from reading another tenant's secrets (Task 5). Finally, Task 6 showed that "deleting" a file does not guarantee its bytes are gone from disk, and that in cloud environments the reliable answer to this data-remanence problem is cryptographic erasure rather than depending on physical control of storage media.
+All three aspects of multi-tenant cloud isolation were illustrated in this lab. Namespaces by themselves offer organizational and quota separation, but as Task 2 shown, they do not automatically prevent cross-tenant network traffic; this calls for an explicit default-deny `NetworkPolicy` (Task 4), which is implemented in this case using Calico as the CNI. Storage isolation is also not automatic; in order to prevent one tenant's service account from viewing another tenant's secrets, per-tenant secrets require RBAC `Role`/`RoleBinding` scoping (Task 5). Lastly, Task 6 demonstrated that "deleting" a file does not ensure that its bytes are removed from disk and that cryptographic erasure, as opposed to relying on physical control of storage media, is a dependable solution to this data-remanence issue in cloud contexts.
 
 ---
 
