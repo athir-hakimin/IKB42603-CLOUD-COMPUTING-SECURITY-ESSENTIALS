@@ -2,11 +2,11 @@
 
 ## Lab 2 Report — Secure Isolation & Multi-Tenancy
 
-**Name:** Raheesh
+**Name:**Tuan Athir Hakimin Bin Tuan Zahirman Zarif
 **Programme:** Bachelor of Information Technology (Hons) in Computer System Security (BCSS)
 **Institution:** Universiti Kuala Lumpur, Malaysian Institute of Information Technology (UniKL MIIT)
 **Course:** IKB42603 Cloud Computing Security Essentials
-**Lecturer:** Prof. Dr. Shahrulniza Musa
+**Lecturer:** Madam Adani
 **Lab:** Lab 2 — Secure Isolation & Multi-Tenancy (Weeks 3–4)
 **CLO Mapping:** CLO2 — Construct secure cloud operations that safeguard data integrity
 
@@ -44,7 +44,8 @@ Calico was then applied to provide policy-enforcing networking:
 kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
 ```
 
-[![Calico manifest applied](screenshots/01-setup-calico-apply.png)](screenshots/01-setup-calico-apply.png)
+<img width="623" height="470" alt="01-setup-calico-apply" src="https://github.com/user-attachments/assets/8c1ad554-7124-4a12-aa48-ad2991cd1384" />
+
 
 ---
 
@@ -62,7 +63,8 @@ kubectl -n tenant-b expose deployment web --port=80
 kubectl get pods,svc -n tenant-a
 ```
 
-[![Namespaces and deployments](screenshots/02-task1-namespaces-deployments.png)](screenshots/02-task1-namespaces-deployments.png)
+<img width="323" height="185" alt="02-task1-namespaces-deployments" src="https://github.com/user-attachments/assets/59715738-46af-4e57-b454-36b43b58e34e" />
+
 
 Both tenants now have their own pod and `ClusterIP` service, isolated at the namespace level but still sharing the same underlying cluster.
 
@@ -76,14 +78,16 @@ To prove that namespaces alone do **not** provide network isolation, `tenant-b`'
 kubectl get svc web -n tenant-b -o jsonpath='{.spec.clusterIP}'; echo
 ```
 
-[![tenant-b service ClusterIP](screenshots/03-task2-get-svc-clusterip.png)](screenshots/03-task2-get-svc-clusterip.png)
+<img width="319" height="293" alt="03-task2-get-svc-clusterip" src="https://github.com/user-attachments/assets/7dc01727-cbd5-4fab-80d5-23b792e7bb45" />
+
 
 ```
 kubectl -n tenant-a run probe --rm -it --image=curlimages/curl --restart=Never \
   -- curl -s -m 5 http://10.96.220.41 -o /dev/null -w 'HTTP %{http_code}\n'
 ```
 
-[![Cross-tenant probe returns HTTP 200](screenshots/04-task2-probe-http200.png)](screenshots/04-task2-probe-http200.png)
+<img width="330" height="135" alt="04-task2-probe-http200" src="https://github.com/user-attachments/assets/3f6403fc-f47f-4282-91f4-c986b34a03c2" />
+
 
 **Result:** `HTTP 200` — the probe pod in `tenant-a` successfully reached `tenant-b`'s service. This confirms that, by default, pods in one namespace can freely reach pods/services in another namespace on the same cluster. On shared multi-tenant infrastructure this is a real risk: without explicit network segmentation, one customer's workload can probe or attack another customer's workload.
 
@@ -109,8 +113,9 @@ EOF
 kubectl describe resourcequota tenant-a-quota -n tenant-a
 ```
 
-[![ResourceQuota applied and described](screenshots/05a-task3-resourcequota-apply.png)](screenshots/05a-task3-resourcequota-apply.png)
-[![ResourceQuota applied and described](screenshots/05b-task3-resourcequota-describe.png)](screenshots/05b-task3-resourcequota-describe.png)
+
+<img width="334" height="200" alt="05a-task3-resourcequota-apply" src="https://github.com/user-attachments/assets/6639564b-ca78-4a26-87bf-87895ad57f7c" />
+<img width="320" height="167" alt="05b-task3-resourcequota-describe" src="https://github.com/user-attachments/assets/54453c07-f38a-4d8c-a4cd-72a2cd08436d" />
 
 The quota was created and shows `pods: 1/5`, confirming the earlier `web` deployment pod is already counted against the limit.
 
@@ -140,8 +145,9 @@ kubectl -n tenant-a run probe --rm -it --image=curlimages/curl --restart=Never \
   -- curl -s -m 5 http://10.96.220.41 -o /dev/null -w 'HTTP %{http_code}\n'
 ```
 
-[![NetworkPolicy applied; probe re-run](screenshots/06a-task4-networkpolicy-applied.png)](screenshots/06a-task4-networkpolicy-applied.png)
-[![NetworkPolicy applied; probe re-run](screenshots/06b-task4-probe-rerun.png)](screenshots/06b-task4-probe-rerun.png)
+<img width="284" height="77" alt="06a-task4-networkpolicy-applied" src="https://github.com/user-attachments/assets/39a2a7dc-797d-44aa-b07e-9513b47c958b" />
+<img width="320" height="170" alt="06b-task4-probe-rerun" src="https://github.com/user-attachments/assets/ebeeb1ce-2788-438d-8205-990c13fd2f79" />
+
 
 **Result:** `default-deny-ingress` was created successfully. On re-running the probe, the pod was instead rejected by the API server with `Forbidden: failed quota: tenant-a-quota: must specify requests.cpu for probe; requests.memory for probe`. This happened because the `tenant-a-quota` `ResourceQuota` from Task 3 requires every pod in the namespace to declare `requests.cpu`/`requests.memory`, and the ad-hoc `probe` pod did not specify them. In effect, the `ResourceQuota` admission control blocked the pod before the `NetworkPolicy` even had a chance to be tested — a good illustration of layered isolation controls (compute and network policy both act as independent gates). Adding explicit resource requests to the probe pod spec (e.g. `--requests='cpu=100m,memory=32Mi'`) would let the pod be admitted, and the connection would then time out due to `default-deny-ingress`, confirming network isolation is enforced.
 
@@ -173,7 +179,8 @@ kubectl auth can-i get secrets -n tenant-a --as=$SA
 kubectl auth can-i get secrets -n tenant-b --as=$SA
 ```
 
-[![RoleBinding created and auth can-i results](screenshots/09-task5-rolebinding-auth-cani.png)](screenshots/09-task5-rolebinding-auth-cani.png)
+<img width="303" height="97" alt="09-task5-rolebinding-auth-cani" src="https://github.com/user-attachments/assets/c8f752ce-9b30-4e81-a582-7f9e6ac87ea7" />
+
 
 **Result:**
 
@@ -199,8 +206,9 @@ docker run --rm -v ccse-vol:/data alpine sh -c \
   echo wiped'
 ```
 
-[![Data remanence scan and secure wipe](screenshots/10a-task6-data-remanence-scan.png)](screenshots/10a-task6-data-remanence-scan.png)
-[![Data remanence scan and secure wipe](screenshots/10b-task6-data-remanence-wipe.png)](screenshots/10b-task6-data-remanence-wipe.png)
+<img width="316" height="193" alt="10a-task6-data-remanence-scan" src="https://github.com/user-attachments/assets/03060440-4c1e-4d2b-b23a-4b910690edaa" />
+<img width="326" height="145" alt="10b-task6-data-remanence-wipe" src="https://github.com/user-attachments/assets/483e4545-82ae-4ceb-b289-dddf724e5758" />
+
 
 **Result:** After the normal `rm`, the `grep -a SENSITIVE` scan found no plaintext match in this run (`scan-done` with no matching line printed), which itself illustrates that remanence is probabilistic — it depends on filesystem behaviour, block reuse, and whether the underlying storage overwrites blocks on delete. Because this cannot be relied upon, the secure-wipe approach explicitly overwrites the file's bytes with zeros (`dd if=/dev/zero ... conv=notrunc`) before deleting it, so the sensitive content is destroyed regardless of what the filesystem does with the freed blocks (`wiped`).
 
