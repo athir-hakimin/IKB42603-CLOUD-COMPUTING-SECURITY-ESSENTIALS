@@ -6,7 +6,7 @@
 - **Instructor:** Madam Adani
 - **Student Name:** Tuan Athir Hakimin bin Tuan Zahirman Zarif
 - **Topic:** Data protection using encryption, TLS, key management, cryptographic erasure and hashing
-- **Environment:** Kali Linux, OpenSSL, Docker, Nginx, AWS CLI and LocalStack KMS
+- **Environment:** OpenSSL, Docker, Nginx, AWS CLI and LocalStack KMS
 - **Date:** 18 August 2026
 
 ## Lab Objectives
@@ -105,8 +105,8 @@ diff record.txt record.dec.txt && echo 'MATCH: decryption successful'
 
 The `MATCH: decryption successful` message confirmed that the decrypted content was the same as the original record.
 
-![AES encryption and decryption](<img width="1792" height="286" alt="Screenshot 2026-08-19 180816" src="https://github.com/user-attachments/assets/707e98aa-af78-452d-aec1-b897a0447155" />
-)
+<img width="1792" height="286" alt="Screenshot 2026-08-19 180816" src="https://github.com/user-attachments/assets/707e98aa-af78-452d-aec1-b897a0447155" />
+
 
 **Figure 1:** AES-256 encryption and decryption showing that the decrypted file matched the original file.
 
@@ -168,7 +168,7 @@ openssl dgst -sha256 -verify public.pem \
 
 The `Verified OK` output confirmed that the digital signature was valid and that the record had not been modified.
 
-![RSA encryption and digital signature](<img width="1277" height="246" alt="Screenshot 2026-08-19 180858" src="https://github.com/user-attachments/assets/a2af2c0c-5984-44e1-99a7-25e1c4843249" />)
+<img width="1277" height="246" alt="Screenshot 2026-08-19 180858" src="https://github.com/user-attachments/assets/a2af2c0c-5984-44e1-99a7-25e1c4843249" />
 
 **Figure 2:** RSA encryption, decryption and digital-signature verification showing the `Verified OK` result.
 
@@ -192,7 +192,7 @@ openssl req -x509 -newkey rsa:2048 \
 
 This command created a certificate named `cert.pem` and a private key named `key.pem`.
 
-![Self-signed certificate generation](<img width="1817" height="311" alt="Screenshot 2026-08-19 185541" src="https://github.com/user-attachments/assets/f87d85c3-ce10-4fad-9649-ac8b058b7e7f" />)
+<img width="1817" height="311" alt="Screenshot 2026-08-19 185541" src="https://github.com/user-attachments/assets/f87d85c3-ce10-4fad-9649-ac8b058b7e7f" />
 
 **Figure 3.1:** Generation of a self-signed certificate and RSA private key using OpenSSL.
 
@@ -251,7 +251,7 @@ docker stop tls
 
 The output `tls` confirmed that the container was stopped successfully.
 
-![TLS HTTPS connection and container cleanup](<img width="1131" height="347" alt="Screenshot 2026-08-19 185730" src="https://github.com/user-attachments/assets/64337911-3805-4cd9-9764-27185003ed90" />)
+<img width="1131" height="347" alt="Screenshot 2026-08-19 185730" src="https://github.com/user-attachments/assets/64337911-3805-4cd9-9764-27185003ed90" />
 
 **Figure 3.2:** The sensitive record was successfully accessed through HTTPS, and the TLS container was stopped after the test.
 
@@ -291,7 +291,7 @@ aws $EP kms create-key \
 
 The command returned the KMS key information, including the KeyId, description and key status. The output showed that the key was enabled and could be used for encryption and decryption.
 
-![KMS master key creation](<img width="1161" height="574" alt="image" src="https://github.com/user-attachments/assets/9d86ee6d-e33d-4587-80b7-5b405309e746" />)
+<img width="1161" height="574" alt="image" src="https://github.com/user-attachments/assets/9d86ee6d-e33d-4587-80b7-5b405309e746" />
 
 **Figure 4.1:** Creation of a KMS master key for Tenant A using LocalStack.
 
@@ -323,7 +323,7 @@ aws $EP kms encrypt \
 
 The command returned a long Base64 ciphertext, showing that the secret was successfully encrypted.
 
-![KMS direct encryption](<img width="1271" height="186" alt="image" src="https://github.com/user-attachments/assets/576970b5-6b32-4301-a0ae-58dd09d9741e" />)
+<img width="1271" height="186" alt="image" src="https://github.com/user-attachments/assets/576970b5-6b32-4301-a0ae-58dd09d9741e" />
 
 **Figure 4.2:** The `hello` secret was successfully encrypted using the Tenant A KMS master key.
 
@@ -396,7 +396,7 @@ ls -l datakey*
 
 Only `datakey.enc`, which contained the KMS-wrapped data key, remained.
 
-![Envelope encryption and key removal](<img width="2361" height="368" alt="image" src="https://github.com/user-attachments/assets/ce72cdde-1297-494a-93a5-dca4814ed9ad" />)
+<img width="2361" height="368" alt="image" src="https://github.com/user-attachments/assets/ce72cdde-1297-494a-93a5-dca4814ed9ad" />
 
 **Figure 5:** Envelope encryption of the sensitive record and removal of the plaintext data key, leaving only the KMS-wrapped key.
 
@@ -432,7 +432,7 @@ echo "Tenant B: $KEY_B"
 
 The output confirmed that each tenant used a different KMS master key.
 
-![Separate KMS keys for each tenant](<img width="1248" height="573" alt="image" src="https://github.com/user-attachments/assets/92284ab9-9e42-42e7-9d7c-1e4c7caa2211" />)
+<img width="1248" height="573" alt="image" src="https://github.com/user-attachments/assets/92284ab9-9e42-42e7-9d7c-1e4c7caa2211" />
 
 **Figure 6.1:** Separate KMS master keys were created for Tenant A and Tenant B, as shown by their different KeyIds.
 
@@ -469,7 +469,7 @@ aws $EP kms decrypt \
 
 The decrypt operation failed with a `KMSInvalidStateException` because the Tenant A master key was pending deletion.
 
-![Cryptographic erasure](<img width="2164" height="552" alt="image" src="https://github.com/user-attachments/assets/061bbcc2-cc3e-4637-904c-13d811e50fca" />)
+<img width="2164" height="552" alt="image" src="https://github.com/user-attachments/assets/061bbcc2-cc3e-4637-904c-13d811e50fca" />
 
 **Figure 6.2:** The Tenant A key entered the `PendingDeletion` state, causing the disable and decrypt operations to fail.
 
@@ -531,7 +531,7 @@ echo "$line | $PREV"; done
 
 Each new hash was calculated using the previous hash together with the current log entry. This linked the records together in sequence.
 
-![Integrity verification and hash chain](<img width="1037" height="336" alt="image" src="https://github.com/user-attachments/assets/9e2f385d-1f78-4c03-b895-d5ec8e74d2d6" />)
+<img width="1037" height="336" alt="image" src="https://github.com/user-attachments/assets/9e2f385d-1f78-4c03-b895-d5ec8e74d2d6" />
 
 **Figure 7:** SHA-256 detected the modification to the copied record, while the hash chain created linked and tamper-evident log entries.
 
@@ -555,7 +555,7 @@ openssl dgst -sha256 -verify public.pem -signature record.sig record.txt
 
 ### Evidence
 
-![Verification of the KMS keys and RSA digital signature](<img width="1176" height="387" alt="image" src="https://github.com/user-attachments/assets/da0a27af-1bda-4baf-9596-d15641b2a6e2" />)
+<img width="1176" height="387" alt="image" src="https://github.com/user-attachments/assets/da0a27af-1bda-4baf-9596-d15641b2a6e2" />
 
 **Figure 8:** Verification of the LocalStack KMS keys and RSA digital signature.
 
@@ -651,7 +651,7 @@ docker ps -a --filter name=localstack
 
 The output confirmed that the sensitive records, cryptographic keys and temporary data-key files had been removed. The LocalStack container used for the KMS tasks was also stopped and removed.
 
-![Cleanup and teardown](<img width="1307" height="98" alt="image" src="https://github.com/user-attachments/assets/63b1214e-d9f9-4def-b6c3-65d335b7ee25" />)
+<img width="1307" height="98" alt="image" src="https://github.com/user-attachments/assets/63b1214e-d9f9-4def-b6c3-65d335b7ee25" />
 
 **Figure 9:** Verification of the cleanup process after removing the temporary cryptographic files and stopping the LocalStack container.
 
